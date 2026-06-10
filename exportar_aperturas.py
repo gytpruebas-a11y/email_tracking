@@ -1,7 +1,7 @@
 import sqlite3
 import csv
 
-conn = sqlite3.connect("tracking.db")
+conn = sqlite3.connect("app/data/tracking.db")
 cursor = conn.cursor()
 
 cursor.execute("""

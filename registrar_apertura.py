@@ -3,7 +3,7 @@ from datetime import datetime
 
 def registrar_apertura(contacto_id, ip):
     # Conexión a la base
-    with sqlite3.connect("tracking.db") as conn:
+    with sqlite3.connect("app/data/tracking.db") as conn:
         cursor = conn.cursor()
 
         # Fecha y hora actual en formato ISO

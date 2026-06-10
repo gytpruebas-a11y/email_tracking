@@ -5,7 +5,7 @@ from datetime import datetime
 app = FastAPI()
 
 def registrar_apertura(contacto_id, ip):
-    with sqlite3.connect("tracking.db") as conn:
+    with sqlite3.connect("app/data/tracking.db") as conn:
         cursor = conn.cursor()
         fecha = datetime.now().isoformat()
         cursor.execute("INSERT INTO aperturas (contacto_id, fecha, ip) VALUES (?, ?, ?)",
