@@ -7,10 +7,10 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - fastapi_data: /app/fastapi_data
-    enviroment:
-     - DATABASE_URL = app/data/tracking.db 
+      - fastapi_data:/app/fastapi_data
+    environment:
+      - DATABASE_URL=sqlite:////app/fastapi_data/tracking.db
     restart: always
-  volumes:
+
+volumes:
   fastapi_data:
-    
