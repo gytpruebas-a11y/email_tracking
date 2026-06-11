@@ -13,8 +13,8 @@ services:
   nginx:
     build: ./frontend
     container_name: nginx-tracker
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - fastapi
     restart: always
