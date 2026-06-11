@@ -4,13 +4,20 @@ services:
   fastapi:
     build: .
     container_name: fastapi-tracker
-    ports:
-      - "8002:8002"
+    expose:
+      - "8002"
     volumes:
-      - fastapi_data:/app/fastapi_data
-    environment:
-      - DATABASE_URL=sqlite:////app/fastapi_data/tracking.db
+      - app_data:/app/app/data
+    restart: always
+
+  nginx:
+    build: ./frontend
+    container_name: nginx-tracker
+    ports:
+      - "80:80"
+    depends_on:
+      - fastapi
     restart: always
 
 volumes:
-  fastapi_data:
+  app_data:

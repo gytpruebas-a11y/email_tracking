@@ -4,7 +4,7 @@ function Aperturas() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8002/api/aperturas")
+    fetch("/api/aperturas")
       .then(res => res.json())
       .then(setData);
   }, []);
