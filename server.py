@@ -47,19 +47,23 @@ def init_db():
 init_db()
 
 
-def registrar_apertura(contacto_id, ip):
+
+@app.get("/open/")
+async def open(email: str, request: Request):
+    ip = request.headers.get("X-Forwarded-For", request.client.host)
+
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        fecha = datetime.now().isoformat()
-        cursor.execute("INSERT INTO aperturas (contacto_id, fecha, ip) VALUES (?, ?, ?)",
-                       (contacto_id, fecha, ip))
-        conn.commit()
-
-
-@app.get("/open/{contacto_id}")
-async def open(contacto_id: int, request: Request):
-    ip = request.headers.get("X-Forwarded-For", request.client.host)
-    registrar_apertura(contacto_id, ip)
+        cursor.execute("SELECT id FROM contactos WHERE correo = ?", (email.strip(),))
+        row = cursor.fetchone()
+        if row:
+            contacto_id = row[0]
+            fecha = datetime.now().isoformat()
+            cursor.execute(
+                "INSERT INTO aperturas (contacto_id, fecha, ip) VALUES (?, ?, ?)",
+                (contacto_id, fecha, ip)
+            )
+            conn.commit()
 
     pixel = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00' \
             b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,' \
