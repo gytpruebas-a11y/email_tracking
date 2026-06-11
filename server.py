@@ -48,7 +48,7 @@ init_db()
 
 
 
-@app.get("/open/")
+@app.get("/open/{email:path}")
 async def open(email: str, request: Request):
     ip = request.headers.get("X-Forwarded-For", request.client.host)
 
