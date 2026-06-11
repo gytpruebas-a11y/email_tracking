@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import sqlite3
 import os
 from datetime import datetime
@@ -81,3 +82,6 @@ async def get_aperturas():
         """)
         rows = cursor.fetchall()
         return [{"nombre": row[0], "correo": row[1], "total_aperturas": row[2]} for row in rows]
+
+
+app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")

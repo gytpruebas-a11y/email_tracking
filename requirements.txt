@@ -3,3 +3,4 @@ uvicorn
 email-validator
 pandas
 openpyxl
+aiofiles
