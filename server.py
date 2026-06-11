@@ -1,9 +1,13 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import sqlite3
+import csv
+import io
 import os
 from datetime import datetime
+
+IMPORT_TOKEN = os.getenv("IMPORT_TOKEN", "test123")
 
 DB_PATH = "app/data/tracking.db"
 
@@ -73,6 +77,55 @@ async def open(email: str, request: Request):
     return Response(content=pixel, media_type="image/gif")
 
 
+@app.post("/api/importar")
+async def importar_contactos(token: str, file: UploadFile = File(...)):
+    if token != IMPORT_TOKEN:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    content = await file.read()
+    text = None
+    for enc in ["utf-8", "latin-1", "cp1252"]:
+        try:
+            text = content.decode(enc)
+            break
+        except Exception:
+            continue
+
+    if text is None:
+        raise HTTPException(status_code=400, detail="No se pudo decodificar el archivo")
+
+    lines = text.splitlines()
+    cleaned = []
+    for line in lines:
+        line = line.strip()
+        if line.startswith('"') and line.endswith('"'):
+            line = line[1:-1].replace('""', '"')
+        cleaned.append(line)
+    reader = csv.DictReader(io.StringIO('\n'.join(cleaned)))
+    insertados = 0
+    omitidos = 0
+
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        for row in reader:
+            correo = (row.get("correo") or "").strip()
+            if not correo:
+                omitidos += 1
+                continue
+            cursor.execute("SELECT id FROM contactos WHERE correo = ?", (correo,))
+            if cursor.fetchone():
+                omitidos += 1
+                continue
+            cursor.execute(
+                "INSERT INTO contactos (nombre, correo, telefono, direccion, rubro) VALUES (?, ?, ?, ?, ?)",
+                (row.get("nombre"), correo, row.get("telefono"), row.get("direccion"), row.get("rubro"))
+            )
+            insertados += 1
+        conn.commit()
+
+    return {"insertados": insertados, "omitidos": omitidos}
+
+
 @app.get("/api/aperturas")
 async def get_aperturas():
     with sqlite3.connect(DB_PATH) as conn:
@@ -88,4 +141,5 @@ async def get_aperturas():
         return [{"nombre": row[0], "correo": row[1], "total_aperturas": row[2]} for row in rows]
 
 
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
+if os.path.isdir("frontend/build"):
+    app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
